@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Note App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+
+    <section class="sidebar">
+      <div class="sidebar__header">
+        <h1>Notes</h1>
+        <button id="new-note-btn">New Note</button>
+      </div>
+      <label class="search">
+        <span class="sr-only">Search notes</span>
+        <input id="search-input" type="search" placeholder="Search notes">
+      </label>
+      <div id="notes-list" class="notes-list" aria-label="Notes list"></div>
+    </section>
+
+    <section class="editor">
+      <div class="editor__header">
+        <div>
+          <p class="eyebrow">Current note</p>
+          <h2 id="current-note-label">Select a note</h2>
+        </div>
+        <div class="btn-group">
+          <button id="save-note-btn">Save</button>
+          <button id="delete-note-btn">Delete</button>
+        </div>
+      </div>
+
+      <div id="note-form" class="note-form">
+        <label>
+          <span>Title</span>
+          <input id="note-title" type="text" maxlength="80" placeholder="Note title">
+        </label>
+        <label>
+          <span>Content</span>
+          <textarea id="note-content" rows="16" placeholder="Write your note here..."></textarea>
+        </label>
+      </div>
+
+      <p class="helper-text">Notes are saved with PouchDB (IndexedDB).</p>
+    </section>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/pouchdb/dist/pouchdb.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
