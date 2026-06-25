@@ -3,7 +3,7 @@ const db = new PouchDB("note-app");
 let notes = [];
 let activeId = null;
 
-// DOM refs
+
 const $ = (id) => document.getElementById(id);
 const el = {
   list:    $("notes-list"),
@@ -16,7 +16,7 @@ const el = {
   content: $("note-content"),
 };
 
-// Helpers
+
 const makeNote = () => ({
   _id:       crypto.randomUUID(),
   title:     "Untitled note",
@@ -26,7 +26,7 @@ const makeNote = () => ({
 
 const getActive = () => notes.find((n) => n._id === activeId) ?? null;
 
-// DB
+
 async function loadNotes() {
   const res = await db.allDocs({ include_docs: true, descending: true });
   notes = res.rows.map((r) => r.doc);
@@ -34,14 +34,14 @@ async function loadNotes() {
 
 async function putNote(note) {
   const res = await db.put(note);
-  note._rev = res.rev; // keep _rev in sync so future saves don't conflict
+  note._rev = res.rev; 
 }
 
 async function removeNote(note) {
   await db.remove(note);
 }
 
-// Render
+
 function renderEditor() {
   const note = getActive();
   const has = note !== null;
@@ -82,7 +82,7 @@ function renderList() {
   }
 }
 
-// Events
+
 el.newBtn.onclick = async () => {
   const note = makeNote();
   await putNote(note);
@@ -120,7 +120,7 @@ el.saveBtn.onclick = async () => {
 
   await putNote(note);
 
-  // bubble saved note to top
+  
   notes = [note, ...notes.filter((n) => n._id !== note._id)];
 
   el.label.textContent  = note.title;
@@ -132,7 +132,7 @@ el.saveBtn.onclick = async () => {
 
 el.search.oninput = renderList;
 
-// Init
+
 async function init() {
   await loadNotes();
 
