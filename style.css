@@ -1,31 +1,36 @@
-/* ── Reset ── */
 * { box-sizing: border-box; margin: 0; }
 
-/* ── Tokens ── */
 :root {
-  --yellow:       #F5C842;
-  --yellow-hover: #E0B52E;
-  --yellow-light: #FDF6D8;
-  --dark:         #2B2B2B;
-  --dark-hover:   #1a1a1a;
-  --bg:           #EDEDED;
-  --sidebar-bg:   #F7F7F7;
-  --white:        #FFFFFF;
-  --border:       #D9D9D9;
-  --text:         #1F1F1F;
-  --muted:        #777777;
-  --danger:       #C0392B;
-  --danger-bg:    #FDF0EF;
-  --danger-hover: #A93226;
-  --radius:       8px;
-  --radius-lg:    12px;
+  --yellow: #F5C842;
+  --yellow-hover: #E8B92E;
+  --bg: #15161A;
+  --surface: #1E1F25;
+  --surface-2: #25262E;
+  --border: #34353D;
+  --text: #ECECEC;
+  --muted: #8A8B93;
+  --danger: #E25C5C;
+  --danger-hover: #C94A4A;
+  --radius: 10px;
 }
 
-/* ── Base ── */
 body {
   font-family: 'Segoe UI', Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
+  position: relative;
+}
+
+.dot-grid-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.app {
+  position: relative;
+  z-index: 1;
 }
 
 button, input, textarea { font: inherit; }
@@ -35,35 +40,20 @@ input:focus, textarea:focus {
   outline-offset: 1px;
 }
 
-/* ── Layout ── */
 .app {
   display: grid;
   grid-template-columns: 300px 1fr;
   min-height: 100vh;
 }
 
-/* ── Sidebar ── */
+/* Sidebar */
 .sidebar {
-  background: var(--sidebar-bg);
+  background: rgba(30, 31, 37, 0.75);
   border-right: 1px solid var(--border);
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  position: relative;
-  overflow: hidden;
-}
-
-.dot-grid-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.sidebar > *:not(.dot-grid-bg) {
-  position: relative;
-  z-index: 1;
 }
 
 .sidebar__header {
@@ -73,25 +63,24 @@ input:focus, textarea:focus {
 }
 
 .sidebar h1 {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.3px;
+  color: var(--text);
 }
-
-/* ── Search ── */
-.search { display: block; }
 
 .search input {
   width: 100%;
-  padding: 9px 12px;
+  padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--white);
+  background: var(--surface-2);
   color: var(--text);
   font-size: 0.9rem;
 }
 
-/* ── Notes List ── */
+.search input::placeholder { color: var(--muted); }
+
 .notes-list {
   display: flex;
   flex-direction: column;
@@ -101,7 +90,7 @@ input:focus, textarea:focus {
 
 .note-item {
   width: 100%;
-  background: var(--white);
+  background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 12px 14px;
@@ -111,12 +100,11 @@ input:focus, textarea:focus {
 
 .note-item:hover {
   border-color: var(--yellow);
-  background: var(--yellow-light);
 }
 
 .note-item.is-active {
   border-color: var(--yellow);
-  background: var(--yellow-light);
+  background: #2A2A1E;
   border-left: 4px solid var(--yellow);
 }
 
@@ -124,7 +112,7 @@ input:focus, textarea:focus {
   display: block;
   font-size: 0.92rem;
   font-weight: 600;
-  color: var(--dark);
+  color: var(--text);
 }
 
 .note-item p {
@@ -137,13 +125,13 @@ input:focus, textarea:focus {
   text-overflow: ellipsis;
 }
 
-/* ── Editor ── */
+/* Editor */
 .editor {
   padding: 32px 36px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  background: var(--bg);
+  background: rgba(21, 22, 26, 0.6);
 }
 
 .editor__header {
@@ -165,14 +153,10 @@ input:focus, textarea:focus {
 .editor h2 {
   font-size: 1.4rem;
   font-weight: 700;
-  color: var(--dark);
+  color: var(--text);
 }
 
-/* ── Note Form ── */
-.note-form {
-  display: grid;
-  gap: 16px;
-}
+.note-form { display: grid; gap: 16px; }
 
 .note-form label {
   display: grid;
@@ -190,7 +174,7 @@ input:focus, textarea:focus {
   padding: 11px 14px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--white);
+  background: var(--surface);
   color: var(--text);
   font-size: 0.95rem;
 }
@@ -201,19 +185,13 @@ input:focus, textarea:focus {
   line-height: 1.6;
 }
 
-/* ── Button Group ── */
-.btn-group {
-  display: flex;
-  gap: 8px;
-}
+.btn-group { display: flex; gap: 8px; }
 
-/* ── Buttons ── */
-
-/* Primary — Yellow + Dark text */
+/* Buttons */
 #new-note-btn,
 #save-note-btn {
   background: var(--yellow);
-  color: var(--dark);
+  color: #1A1A1A;
   border-radius: var(--radius);
   padding: 9px 18px;
   font-weight: 600;
@@ -222,54 +200,36 @@ input:focus, textarea:focus {
 }
 
 #new-note-btn:hover,
-#save-note-btn:hover {
-  background: var(--yellow-hover);
-}
+#save-note-btn:hover { background: var(--yellow-hover); }
 
-/* Secondary — Dark */
 #delete-note-btn {
-  background: var(--dark);
-  color: #ffffff;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--danger);
   border-radius: var(--radius);
   padding: 9px 18px;
   font-weight: 600;
   font-size: 0.88rem;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 #delete-note-btn:hover {
-  background: var(--dark-hover);
+  border-color: var(--danger);
+  background: #2A1E1E;
 }
 
 #delete-note-btn:disabled,
-#save-note-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
+#save-note-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* ── Helper Text ── */
-.helper-text {
-  font-size: 0.82rem;
-  color: var(--muted);
-}
+.helper-text { font-size: 0.82rem; color: var(--muted); }
 
-/* ── Accessibility ── */
 .sr-only {
-  position: absolute;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px;
-  overflow: hidden;
-  clip: rect(0,0,0,0);
-  white-space: nowrap;
-  border: 0;
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
 }
 
-/* ── Mobile ── */
 @media (max-width: 800px) {
   .app { grid-template-columns: 1fr; }
-  .sidebar {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
+  .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
   .editor { padding: 20px 16px; }
 }

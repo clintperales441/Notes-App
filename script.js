@@ -1,150 +1,164 @@
-const db = new PouchDB("note-app");
+const STORAGE_KEY = "simple-note-app-notes";
 
-let notes = [];
-let activeId = null;
+const notesList = document.getElementById("notes-list");
+const newNoteButton = document.getElementById("new-note-btn");
+const deleteNoteButton = document.getElementById("delete-note-btn");
+const searchInput = document.getElementById("search-input");
+const currentNoteLabel = document.getElementById("current-note-label");
+const noteTitleInput = document.getElementById("note-title");
+const noteContentInput = document.getElementById("note-content");
 
+let notes = loadNotes();
+let activeNoteId = notes[0]?.id || null;
 
-const $ = (id) => document.getElementById(id);
-const el = {
-  list:    $("notes-list"),
-  newBtn:  $("new-note-btn"),
-  delBtn:  $("delete-note-btn"),
-  saveBtn: $("save-note-btn"),
-  search:  $("search-input"),
-  label:   $("current-note-label"),
-  title:   $("note-title"),
-  content: $("note-content"),
-};
+if (notes.length === 0) {
+	notes = [createNote()];
+	activeNoteId = notes[0].id;
+	saveNotes();
+}
 
+render();
 
-const makeNote = () => ({
-  _id:       crypto.randomUUID(),
-  title:     "Untitled note",
-  content:   "",
-  updatedAt: new Date().toISOString(),
+newNoteButton.addEventListener("click", () => {
+	const note = createNote();
+	notes.unshift(note);
+	activeNoteId = note.id;
+	saveNotes();
+	render();
 });
 
-const getActive = () => notes.find((n) => n._id === activeId) ?? null;
+deleteNoteButton.addEventListener("click", () => {
+	if (!activeNoteId) {
+		return;
+	}
 
+	notes = notes.filter((note) => note.id !== activeNoteId);
 
-async function loadNotes() {
-  const res = await db.allDocs({ include_docs: true, descending: true });
-  notes = res.rows.map((r) => r.doc);
+	if (notes.length === 0) {
+		const note = createNote();
+		notes = [note];
+		activeNoteId = note.id;
+	} else {
+		activeNoteId = notes[0].id;
+	}
+
+	saveNotes();
+	render();
+});
+
+searchInput.addEventListener("input", render);
+
+noteTitleInput.addEventListener("input", updateActiveNote);
+noteContentInput.addEventListener("input", updateActiveNote);
+
+function loadNotes() {
+	const savedNotes = localStorage.getItem(STORAGE_KEY);
+	if (!savedNotes) {
+		return [];
+	}
+
+	try {
+		const parsedNotes = JSON.parse(savedNotes);
+		return Array.isArray(parsedNotes) ? parsedNotes : [];
+	} catch {
+		return [];
+	}
 }
 
-async function putNote(note) {
-  const res = await db.put(note);
-  note._rev = res.rev; 
+function saveNotes() {
+	localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
 }
 
-async function removeNote(note) {
-  await db.remove(note);
+function createNote() {
+	const now = new Date();
+	return {
+		id: crypto.randomUUID(),
+		title: "Untitled note",
+		content: "",
+		updatedAt: now.toISOString(),
+	};
 }
 
-
-function renderEditor() {
-  const note = getActive();
-  const has = note !== null;
-
-  el.label.textContent = has ? note.title : "Select a note";
-  el.title.value       = has ? note.title : "";
-  el.content.value     = has ? note.content : "";
-  el.title.disabled    = !has;
-  el.content.disabled  = !has;
-  el.delBtn.disabled   = !has;
-  el.saveBtn.disabled  = !has;
+function getActiveNote() {
+	return notes.find((note) => note.id === activeNoteId) || null;
 }
 
-function renderList() {
-  const term = el.search.value.trim().toLowerCase();
-  const list = term
-    ? notes.filter((n) =>
-        n.title.toLowerCase().includes(term) ||
-        n.content.toLowerCase().includes(term))
-    : notes;
+function updateActiveNote() {
+	const note = getActiveNote();
+	if (!note) {
+		return;
+	}
 
-  el.list.innerHTML = "";
+	note.title = noteTitleInput.value.trim() || "Untitled note";
+	note.content = noteContentInput.value;
+	note.updatedAt = new Date().toISOString();
 
-  if (list.length === 0) {
-    el.list.innerHTML = "<p>No notes found.</p>";
-    return;
-  }
-
-  for (const note of list) {
-    const btn = document.createElement("button");
-    btn.className = `note-item${note._id === activeId ? " is-active" : ""}`;
-    btn.onclick = () => { activeId = note._id; renderEditor(); renderList(); };
-    btn.innerHTML = `
-      <strong>${note.title}</strong>
-      <p>${note.content.slice(0, 80) || "No content yet."}</p>
-    `;
-    el.list.appendChild(btn);
-  }
+	notes = [note, ...notes.filter((item) => item.id !== note.id)];
+	saveNotes();
+	currentNoteLabel.textContent = note.title;
+	renderNotes();
 }
 
+function render() {
+	const note = getActiveNote();
+	const searchTerm = searchInput.value.trim().toLowerCase();
 
-el.newBtn.onclick = async () => {
-  const note = makeNote();
-  await putNote(note);
-  notes.unshift(note);
-  activeId = note._id;
-  renderEditor();
-  renderList();
-};
+	if (note) {
+		currentNoteLabel.textContent = note.title;
+		noteTitleInput.value = note.title;
+		noteContentInput.value = note.content;
+		noteTitleInput.disabled = false;
+		noteContentInput.disabled = false;
+		deleteNoteButton.disabled = false;
+	} else {
+		currentNoteLabel.textContent = "Select a note";
+		noteTitleInput.value = "";
+		noteContentInput.value = "";
+		noteTitleInput.disabled = true;
+		noteContentInput.disabled = true;
+		deleteNoteButton.disabled = true;
+	}
 
-el.delBtn.onclick = async () => {
-  const note = getActive();
-  if (!note) return;
-
-  await removeNote(note);
-  notes = notes.filter((n) => n._id !== note._id);
-
-  if (notes.length === 0) {
-    const fresh = makeNote();
-    await putNote(fresh);
-    notes = [fresh];
-  }
-
-  activeId = notes[0]._id;
-  renderEditor();
-  renderList();
-};
-
-el.saveBtn.onclick = async () => {
-  const note = getActive();
-  if (!note) return;
-
-  note.title     = el.title.value.trim() || "Untitled note";
-  note.content   = el.content.value;
-  note.updatedAt = new Date().toISOString();
-
-  await putNote(note);
-
-  
-  notes = [note, ...notes.filter((n) => n._id !== note._id)];
-
-  el.label.textContent  = note.title;
-  el.saveBtn.textContent = "Saved ✓";
-  setTimeout(() => { el.saveBtn.textContent = "Save"; }, 1500);
-
-  renderList();
-};
-
-el.search.oninput = renderList;
-
-
-async function init() {
-  await loadNotes();
-
-  if (notes.length === 0) {
-    const note = makeNote();
-    await putNote(note);
-    notes = [note];
-  }
-
-  activeId = notes[0]._id;
-  renderEditor();
-  renderList();
+	renderNotes(searchTerm);
 }
 
-init();
+function renderNotes(searchTerm = "") {
+	const filteredNotes = notes.filter((note) => {
+		if (!searchTerm) {
+			return true;
+		}
+
+		return (
+			note.title.toLowerCase().includes(searchTerm) ||
+			note.content.toLowerCase().includes(searchTerm)
+		);
+	});
+
+	notesList.innerHTML = "";
+
+	if (filteredNotes.length === 0) {
+		const emptyState = document.createElement("p");
+		emptyState.textContent = "No notes found.";
+		notesList.appendChild(emptyState);
+		return;
+	}
+
+	for (const note of filteredNotes) {
+		const button = document.createElement("button");
+		button.type = "button";
+		button.className = `note-item${note.id === activeNoteId ? " is-active" : ""}`;
+		button.addEventListener("click", () => {
+			activeNoteId = note.id;
+			render();
+		});
+
+		const title = document.createElement("strong");
+		title.textContent = note.title;
+
+		const preview = document.createElement("p");
+		preview.textContent = note.content.slice(0, 80) || "No content yet.";
+
+		button.append(title, preview);
+		notesList.appendChild(button);
+	}
+}

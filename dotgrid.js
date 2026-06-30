@@ -1,5 +1,5 @@
-// DotGrid — vanilla JS canvas background effect
-// Usage: new DotGrid(containerEl, { options })
+// DotGrid (vanilla JS port of the React Bits DotGrid component)
+// No React, no GSAP — uses canvas + requestAnimationFrame + manual spring physics.
 
 function hexToRgb(hex) {
   const m = hex.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
@@ -8,18 +8,33 @@ function hexToRgb(hex) {
     : { r: 0, g: 0, b: 0 };
 }
 
+function throttle(fn, limit) {
+  let last = 0;
+  return (...args) => {
+    const now = performance.now();
+    if (now - last >= limit) {
+      last = now;
+      fn(...args);
+    }
+  };
+}
+
 class DotGrid {
   constructor(container, options = {}) {
     this.container = container;
+
     this.opts = {
-      dotSize: 4,
-      gap: 22,
-      baseColor: "#d9d9d9",
-      activeColor: "#F5C842",
-      proximity: 100,
-      shockRadius: 180,
-      shockStrength: 4,
-      returnDuration: 0.6, // seconds
+      dotSize: 16,
+      gap: 32,
+      baseColor: "#5227FF",
+      activeColor: "#5227FF",
+      proximity: 150,
+      speedTrigger: 100,
+      shockRadius: 250,
+      shockStrength: 5,
+      maxSpeed: 5000,
+      resistance: 750,
+      returnDuration: 1.5,
       ...options,
     };
 
@@ -27,43 +42,51 @@ class DotGrid {
     this.activeRgb = hexToRgb(this.opts.activeColor);
 
     this.dots = [];
-    this.pointer = { x: -9999, y: -9999 };
+    this.pointer = { x: -9999, y: -9999, lastX: 0, lastY: 0, lastTime: 0, vx: 0, vy: 0, speed: 0 };
 
-    this._buildCanvas();
+    this._buildDom();
     this._buildGrid();
     this._bindEvents();
     this._loop();
-
-    // layout may not be final on first paint — rebuild shortly after
-    setTimeout(() => this._buildGrid(), 50);
   }
 
-  _buildCanvas() {
+  _buildDom() {
+    // container > wrap > canvas, mirrors the React component's DOM structure
+    this.wrap = document.createElement("div");
+    this.wrap.style.width = "100%";
+    this.wrap.style.height = "100%";
+    this.wrap.style.position = "relative";
+
     this.canvas = document.createElement("canvas");
     this.canvas.style.position = "absolute";
     this.canvas.style.inset = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     this.canvas.style.pointerEvents = "none";
-    this.container.style.position = "relative";
-    this.container.appendChild(this.canvas);
+
+    this.wrap.appendChild(this.canvas);
+    this.container.appendChild(this.wrap);
     this.ctx = this.canvas.getContext("2d");
   }
 
   _buildGrid() {
     const { dotSize, gap } = this.opts;
+    const rect = this.wrap.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
     const dpr = window.devicePixelRatio || 1;
-    const { width, height } = this.container.getBoundingClientRect();
 
     this.canvas.width = width * dpr;
     this.canvas.height = height * dpr;
-    this.canvas.style.width = `${width}px`;
-    this.canvas.style.height = `${height}px`;
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     const cell = dotSize + gap;
     const cols = Math.floor((width + gap) / cell);
     const rows = Math.floor((height + gap) / cell);
-    const startX = (width - (cell * cols - gap)) / 2 + dotSize / 2;
-    const startY = (height - (cell * rows - gap)) / 2 + dotSize / 2;
+    const gridW = cell * cols - gap;
+    const gridH = cell * rows - gap;
+    const startX = (width - gridW) / 2 + dotSize / 2;
+    const startY = (height - gridH) / 2 + dotSize / 2;
 
     this.dots = [];
     for (let y = 0; y < rows; y++) {
@@ -71,9 +94,9 @@ class DotGrid {
         this.dots.push({
           cx: startX + x * cell,
           cy: startY + y * cell,
-          ox: 0, // x offset from shock/push
-          oy: 0,
-          vx: 0, // velocity, used for spring-back
+          xOffset: 0,
+          yOffset: 0,
+          vx: 0,
           vy: 0,
         });
       }
@@ -82,29 +105,72 @@ class DotGrid {
 
   _bindEvents() {
     this._onResize = () => this._buildGrid();
-    window.addEventListener("resize", this._onResize);
+
+    if ("ResizeObserver" in window) {
+      this._ro = new ResizeObserver(this._onResize);
+      this._ro.observe(this.wrap);
+    } else {
+      window.addEventListener("resize", this._onResize);
+    }
+
+    const { maxSpeed, speedTrigger, proximity, resistance, returnDuration } = this.opts;
 
     this._onMove = (e) => {
+      const now = performance.now();
+      const p = this.pointer;
+      const dt = p.lastTime ? now - p.lastTime : 16;
+
+      let vx = ((e.clientX - p.lastX) / dt) * 1000;
+      let vy = ((e.clientY - p.lastY) / dt) * 1000;
+      let speed = Math.hypot(vx, vy);
+
+      if (speed > maxSpeed) {
+        const scale = maxSpeed / speed;
+        vx *= scale;
+        vy *= scale;
+        speed = maxSpeed;
+      }
+
+      p.lastTime = now;
+      p.lastX = e.clientX;
+      p.lastY = e.clientY;
+      p.vx = vx;
+      p.vy = vy;
+      p.speed = speed;
+
       const rect = this.canvas.getBoundingClientRect();
-      this.pointer.x = e.clientX - rect.left;
-      this.pointer.y = e.clientY - rect.top;
+      p.x = e.clientX - rect.left;
+      p.y = e.clientY - rect.top;
+
+      // fast mouse movement nudges nearby dots (inertia push)
+      for (const dot of this.dots) {
+        const dist = Math.hypot(dot.cx - p.x, dot.cy - p.y);
+        if (speed > speedTrigger && dist < proximity) {
+          const pushX = dot.cx - p.x + vx * 0.005;
+          const pushY = dot.cy - p.y + vy * 0.005;
+          dot.vx += (pushX - dot.xOffset) / (resistance / 50);
+          dot.vy += (pushY - dot.yOffset) / (resistance / 50);
+        }
+      }
     };
-    window.addEventListener("mousemove", this._onMove, { passive: true });
+
+    this._throttledMove = throttle(this._onMove, 50);
+    window.addEventListener("mousemove", this._throttledMove, { passive: true });
 
     this._onClick = (e) => {
       const rect = this.canvas.getBoundingClientRect();
       const cx = e.clientX - rect.left;
       const cy = e.clientY - rect.top;
-      const { shockRadius, shockStrength } = this.opts;
+      const { shockRadius, shockStrength, resistance } = this.opts;
 
       for (const dot of this.dots) {
-        const dx = dot.cx - cx;
-        const dy = dot.cy - cy;
-        const dist = Math.hypot(dx, dy);
+        const dist = Math.hypot(dot.cx - cx, dot.cy - cy);
         if (dist < shockRadius && dist > 0) {
           const falloff = 1 - dist / shockRadius;
-          dot.vx += (dx / dist) * shockStrength * falloff * 14;
-          dot.vy += (dy / dist) * shockStrength * falloff * 14;
+          const pushX = (dot.cx - cx) * shockStrength * falloff;
+          const pushY = (dot.cy - cy) * shockStrength * falloff;
+          dot.vx += (pushX - dot.xOffset) / (resistance / 50);
+          dot.vy += (pushY - dot.yOffset) / (resistance / 50);
         }
       }
     };
@@ -114,22 +180,22 @@ class DotGrid {
   _loop() {
     const { dotSize, proximity, returnDuration } = this.opts;
     const proxSq = proximity * proximity;
-    // spring stiffness derived from returnDuration: shorter = snappier
-    const stiffness = 1 / (returnDuration * 60);
+    // spring constant derived from returnDuration: shorter duration = snappier spring
+    const k = 1 / (returnDuration * 60);
 
     const draw = () => {
       const ctx = this.ctx;
-      const { width, height } = this.container.getBoundingClientRect();
-      ctx.clearRect(0, 0, width, height);
+      const rect = this.wrap.getBoundingClientRect();
+      ctx.clearRect(0, 0, rect.width, rect.height);
 
       for (const dot of this.dots) {
-        // spring physics: pull offset back toward 0
-        dot.vx += -dot.ox * stiffness;
-        dot.vy += -dot.oy * stiffness;
-        dot.vx *= 0.9; // damping
+        // spring-back physics: pull offset toward zero, damped
+        dot.vx += -dot.xOffset * k;
+        dot.vy += -dot.yOffset * k;
+        dot.vx *= 0.9;
         dot.vy *= 0.9;
-        dot.ox += dot.vx;
-        dot.oy += dot.vy;
+        dot.xOffset += dot.vx;
+        dot.yOffset += dot.vy;
 
         const dx = dot.cx - this.pointer.x;
         const dy = dot.cy - this.pointer.y;
@@ -145,7 +211,7 @@ class DotGrid {
         }
 
         ctx.beginPath();
-        ctx.arc(dot.cx + dot.ox, dot.cy + dot.oy, dotSize / 2, 0, Math.PI * 2);
+        ctx.arc(dot.cx + dot.xOffset, dot.cy + dot.yOffset, dotSize / 2, 0, Math.PI * 2);
         ctx.fillStyle = color;
         ctx.fill();
       }
@@ -158,9 +224,10 @@ class DotGrid {
 
   destroy() {
     cancelAnimationFrame(this._raf);
-    window.removeEventListener("resize", this._onResize);
-    window.removeEventListener("mousemove", this._onMove);
+    if (this._ro) this._ro.disconnect();
+    else window.removeEventListener("resize", this._onResize);
+    window.removeEventListener("mousemove", this._throttledMove);
     window.removeEventListener("click", this._onClick);
-    this.canvas.remove();
+    this.wrap.remove();
   }
 }
