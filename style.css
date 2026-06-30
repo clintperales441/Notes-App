@@ -50,6 +50,20 @@ input:focus, textarea:focus {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.dot-grid-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.sidebar > *:not(.dot-grid-bg) {
+  position: relative;
+  z-index: 1;
 }
 
 .sidebar__header {

@@ -10,6 +10,7 @@
   <main class="app">
 
     <section class="sidebar">
+      <div id="dot-grid-bg" class="dot-grid-bg"></div>
       <div class="sidebar__header">
         <h1>Notes</h1>
         <button id="new-note-btn">New Note</button>
@@ -50,6 +51,19 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/pouchdb/dist/pouchdb.min.js"></script>
+  <script src="dotgrid.js"></script>
   <script src="script.js"></script>
+  <script>
+    new DotGrid(document.getElementById("dot-grid-bg"), {
+      dotSize: 5,
+      gap: 20,
+      baseColor: "#b8b8b8",
+      activeColor: "#F5C842",
+      proximity: 90,
+      shockRadius: 150,
+      shockStrength: 3,
+      returnDuration: 0.6,
+    });
+  </script>
 </body>
 </html>
