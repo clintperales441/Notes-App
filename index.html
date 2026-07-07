@@ -40,6 +40,12 @@
           <span>Title</span>
           <input id="note-title" type="text" maxlength="80" placeholder="Note title">
         </label>
+        <p id="note-weather-tag"></p>
+        <div class="color-picker-row">
+          <label for="note-color-input">Note color</label>
+          <input type="color" id="note-color-input" value="#8a8f9c">
+          <span id="note-color-label"></span>
+        </div>
         <label>
           <span>Content</span>
           <textarea id="note-content" rows="16" placeholder="Write your note here..."></textarea>
@@ -50,8 +56,9 @@
     </section>
 
   </main>
-
   <script src="https://cdn.jsdelivr.net/npm/pouchdb/dist/pouchdb.min.js"></script>
+  <script src="weather.js"></script>
+  <script src="color.js"></script>
   <script src="dotgrid.js"></script>
   <script src="script.js"></script>
   <script>

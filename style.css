@@ -233,3 +233,172 @@ input:focus, textarea:focus {
   .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
   .editor { padding: 20px 16px; }
 }
+
+/* --- Weather badge + background tint (append to style.css) --- */
+
+.weather-tag {
+  display: inline-block;
+  margin: 4px 0 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: rgba(245, 200, 66, 0.12); /* soft yellow, matches theme accent */
+  color: #F5C842;
+  border: 1px solid rgba(245, 200, 66, 0.35);
+}
+
+/* Category-specific badge tints */
+.weather-tag[data-condition="clear"]  { background: rgba(245, 200, 66, 0.18); color: #F5C842; border-color: rgba(245, 200, 66, 0.4); }
+.weather-tag[data-condition="cloudy"] { background: rgba(153, 160, 181, 0.18); color: #C7CBDA; border-color: rgba(153, 160, 181, 0.4); }
+.weather-tag[data-condition="fog"]    { background: rgba(153, 160, 181, 0.14); color: #A9AEC2; border-color: rgba(153, 160, 181, 0.3); }
+.weather-tag[data-condition="rain"]   { background: rgba(90, 150, 220, 0.18);  color: #7FB3F0; border-color: rgba(90, 150, 220, 0.4); }
+.weather-tag[data-condition="snow"]   { background: rgba(210, 230, 255, 0.16); color: #E4EEFF; border-color: rgba(210, 230, 255, 0.35); }
+.weather-tag[data-condition="storm"]  { background: rgba(180, 90, 220, 0.18);  color: #D28CF5; border-color: rgba(180, 90, 220, 0.4); }
+
+/* Soft background tint on the editor panel, matching the active note's weather.
+   Layered as a gradient so it doesn't fight your existing dark background. */
+.editor {
+  transition: background 0.6s ease;
+}
+
+.editor[data-condition="clear"] {
+  background: radial-gradient(circle at top right, rgba(245, 200, 66, 0.08), transparent 60%);
+}
+.editor[data-condition="cloudy"] {
+  background: radial-gradient(circle at top right, rgba(153, 160, 181, 0.08), transparent 60%);
+}
+.editor[data-condition="fog"] {
+  background: radial-gradient(circle at top right, rgba(153, 160, 181, 0.06), transparent 60%);
+}
+.editor[data-condition="rain"] {
+  background: radial-gradient(circle at top right, rgba(90, 150, 220, 0.08), transparent 60%);
+}
+.editor[data-condition="snow"] {
+  background: radial-gradient(circle at top right, rgba(210, 230, 255, 0.08), transparent 60%);
+}
+.editor[data-condition="storm"] {
+  background: radial-gradient(circle at top right, rgba(180, 90, 220, 0.1), transparent 60%);
+}
+
+/* --- Weather badge + background tint (append to style.css) --- */
+
+.weather-tag {
+  display: inline-block;
+  margin: 4px 0 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: rgba(245, 200, 66, 0.12); /* soft yellow, matches theme accent */
+  color: #F5C842;
+  border: 1px solid rgba(245, 200, 66, 0.35);
+}
+
+/* Category-specific badge tints */
+.weather-tag[data-condition="clear"]  { background: rgba(245, 200, 66, 0.18); color: #F5C842; border-color: rgba(245, 200, 66, 0.4); }
+.weather-tag[data-condition="cloudy"] { background: rgba(153, 160, 181, 0.18); color: #C7CBDA; border-color: rgba(153, 160, 181, 0.4); }
+.weather-tag[data-condition="fog"]    { background: rgba(153, 160, 181, 0.14); color: #A9AEC2; border-color: rgba(153, 160, 181, 0.3); }
+.weather-tag[data-condition="rain"]   { background: rgba(90, 150, 220, 0.18);  color: #7FB3F0; border-color: rgba(90, 150, 220, 0.4); }
+.weather-tag[data-condition="snow"]   { background: rgba(210, 230, 255, 0.16); color: #E4EEFF; border-color: rgba(210, 230, 255, 0.35); }
+.weather-tag[data-condition="storm"]  { background: rgba(180, 90, 220, 0.18);  color: #D28CF5; border-color: rgba(180, 90, 220, 0.4); }
+
+/* Soft background tint on the editor panel, matching the active note's weather.
+   Layered as a gradient so it doesn't fight your existing dark background. */
+.editor {
+  transition: background 0.6s ease;
+}
+
+.editor[data-condition="clear"] {
+  background: radial-gradient(circle at top right, rgba(245, 200, 66, 0.08), transparent 60%);
+}
+.editor[data-condition="cloudy"] {
+  background: radial-gradient(circle at top right, rgba(153, 160, 181, 0.08), transparent 60%);
+}
+.editor[data-condition="fog"] {
+  background: radial-gradient(circle at top right, rgba(153, 160, 181, 0.06), transparent 60%);
+}
+.editor[data-condition="rain"] {
+  background: radial-gradient(circle at top right, rgba(90, 150, 220, 0.08), transparent 60%);
+}
+.editor[data-condition="snow"] {
+  background: radial-gradient(circle at top right, rgba(210, 230, 255, 0.08), transparent 60%);
+}
+.editor[data-condition="storm"] {
+  background: radial-gradient(circle at top right, rgba(180, 90, 220, 0.1), transparent 60%);
+}
+
+/* --- Note card weather badge (sidebar list) --- */
+
+.note-item {
+  position: relative; /* anchor point for the badge */
+}
+
+.note-card-weather {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 0.72rem;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(245, 200, 66, 0.14);
+  color: #F5C842;
+  border: 1px solid rgba(245, 200, 66, 0.3);
+  white-space: nowrap;
+}
+
+.note-card-weather[data-condition="clear"]  { background: rgba(245, 200, 66, 0.18); color: #F5C842; border-color: rgba(245, 200, 66, 0.4); }
+.note-card-weather[data-condition="cloudy"] { background: rgba(153, 160, 181, 0.18); color: #C7CBDA; border-color: rgba(153, 160, 181, 0.4); }
+.note-card-weather[data-condition="fog"]    { background: rgba(153, 160, 181, 0.14); color: #A9AEC2; border-color: rgba(153, 160, 181, 0.3); }
+.note-card-weather[data-condition="rain"]   { background: rgba(90, 150, 220, 0.18);  color: #7FB3F0; border-color: rgba(90, 150, 220, 0.4); }
+.note-card-weather[data-condition="snow"]   { background: rgba(210, 230, 255, 0.16); color: #E4EEFF; border-color: rgba(210, 230, 255, 0.35); }
+.note-card-weather[data-condition="storm"]  { background: rgba(180, 90, 220, 0.18);  color: #D28CF5; border-color: rgba(180, 90, 220, 0.4); }
+
+/* --- Color accent bar (sidebar card) --- */
+/* Rendered as a ::before pseudo-element rather than border/box-shadow,
+   so it's guaranteed to render regardless of what .is-active uses for
+   its own highlight — the two are on separate paint layers. */
+
+.note-item.has-color {
+  padding-left: 20px;
+}
+
+.note-item.has-color::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 3px;
+  background: var(--note-color);
+}
+
+/* --- Color picker (editor header) --- */
+
+.color-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 12px;
+}
+
+.color-picker-row label {
+  font-size: 0.85rem;
+  color: #A9AEC2;
+}
+
+.color-picker-row input[type="color"] {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+
+#note-color-label {
+  font-size: 0.85rem;
+  color: #E4E6EF;
+}
